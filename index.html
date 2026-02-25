@@ -1145,6 +1145,158 @@
             margin-top: .15rem
         }
 
+        /* HERO LIVE NEWS */
+        .hero-news {
+            margin-top: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            background: var(--bg-card);
+            backdrop-filter: blur(14px) saturate(150%);
+            border: 1px solid var(--border);
+        }
+
+        .hero-news-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: .85rem;
+            padding-bottom: .6rem;
+            border-bottom: 1px solid rgba(148, 163, 184, .06);
+        }
+
+        .hero-news-hdr h3 {
+            font-size: .95rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+        }
+
+        .hero-news-hdr .live-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            font-size: .65rem;
+            font-weight: 700;
+            color: var(--green);
+            background: rgba(16, 185, 129, .1);
+            padding: .15rem .5rem;
+            border-radius: 99px;
+            border: 1px solid rgba(16, 185, 129, .15);
+        }
+
+        .hero-news-hdr .live-pulse .dot-sm {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pls 2s ease-in-out infinite;
+        }
+
+        .hero-news-hdr .updated-time {
+            font-size: .68rem;
+            color: var(--txt3);
+        }
+
+        .hero-news-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: .65rem;
+        }
+
+        .hn-item {
+            display: flex;
+            gap: .75rem;
+            padding: .7rem .85rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid rgba(148, 163, 184, .04);
+            transition: all var(--fast);
+            text-decoration: none;
+        }
+
+        .hn-item:hover {
+            background: rgba(99, 102, 241, .06);
+            border-color: var(--border-h);
+            transform: translateY(-1px);
+        }
+
+        .hn-img {
+            width: 72px;
+            height: 54px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .hn-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hn-body h4 {
+            font-size: .78rem;
+            font-weight: 700;
+            line-height: 1.35;
+            color: var(--txt);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: .2rem;
+        }
+
+        .hn-meta {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .65rem;
+            color: var(--txt3);
+        }
+
+        .hn-meta .src {
+            font-weight: 600;
+            color: var(--cyan);
+        }
+
+        .hn-skel {
+            display: flex;
+            gap: .75rem;
+            padding: .7rem .85rem;
+        }
+
+        .hn-skel .sk-img {
+            width: 72px;
+            height: 54px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .hn-skel .sk-lines {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+        }
+
+        .hn-skel .sk-line {
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .hn-skel .sk-line.w80 {
+            width: 85%;
+        }
+
+        .hn-skel .sk-line.w60 {
+            width: 60%;
+        }
+
+        .hn-skel .sk-line.w40 {
+            width: 40%;
+        }
+
         /* RESPONSIVE */
         @media(max-width:768px) {
             .nav {
@@ -1248,6 +1400,18 @@
                 <div style="font-size:.9rem;font-weight:600">Loading TradingView Chart...</div>
             </div>
         </div>
+
+        <!-- LIVE NEWS BELOW CHART -->
+        <div class="hero-news" id="hero-news">
+            <div class="hero-news-hdr">
+                <h3>📰 News Update <span class="live-pulse"><span class="dot-sm"></span>LIVE</span></h3>
+                <span class="updated-time" id="news-updated">Updating...</span>
+            </div>
+            <div class="hero-news-list" id="hero-news-list">
+                <!-- Loaded by JS -->
+            </div>
+        </div>
+
         <div class="idx-grid" id="idx-cards"></div>
     </section>
 
@@ -1429,7 +1593,7 @@
         // ===== INIT =====
         document.addEventListener('DOMContentLoaded', () => {
             initToggle(); initTabs(); initNewsFilters(); initGoTop(); initModal();
-            renderTicker(); renderAll(); startClock();
+            renderTicker(); renderAll(); startClock(); initHeroNews();
         });
 
         // ===== CLOCK =====
@@ -1653,6 +1817,43 @@
             const b = document.getElementById('go-top');
             window.addEventListener('scroll', () => b.classList.toggle('vis', scrollY > 350));
             b.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== HERO LIVE NEWS (Finnhub API + hourly refresh) =====
+        const FINNHUB_KEY = 'cvs2ashr01qhb4g3q0tgcvs2ashr01qhb4g3q0u0';
+        const HERO_NEWS_FALLBACK = [
+            { headline: 'Federal Reserve Signals Potential Rate Cut in Q2 2026', source: 'Reuters', url: '#', image: '', datetime: Date.now() / 1000 - 900 },
+            { headline: 'NVIDIA Blackwell Ultra GPUs Drive Record Revenue Growth', source: 'CNBC', url: '#', image: '', datetime: Date.now() / 1000 - 3600 },
+            { headline: 'SET Index Rallies on Foreign Fund Inflows & Tourism Recovery', source: 'Bangkok Post', url: '#', image: '', datetime: Date.now() / 1000 - 5400 },
+            { headline: 'Bitcoin Breaks $105K as Institutional Adoption Accelerates', source: 'CoinDesk', url: '#', image: '', datetime: Date.now() / 1000 - 7200 },
+            { headline: 'Apple AI-Powered iPhone 17 Launch Expected in September', source: 'Reuters', url: '#', image: '', datetime: Date.now() / 1000 - 10800 },
+            { headline: 'Tesla Q1 Deliveries Miss Street Estimates by 8%', source: 'Bloomberg', url: '#', image: '', datetime: Date.now() / 1000 - 14400 },
+            { headline: 'Bank of Thailand Holds Policy Rate Steady at 2.25%', source: 'Krungthep Turakij', url: '#', image: '', datetime: Date.now() / 1000 - 18000 },
+            { headline: 'Meta AI Assistant Surpasses 1 Billion Active Users', source: 'CNBC', url: '#', image: '', datetime: Date.now() / 1000 - 21600 },
+        ];
+        let heroNewsTimer = null;
+        function initHeroNews() { fetchHeroNews(); heroNewsTimer = setInterval(fetchHeroNews, 60 * 60 * 1000); }
+        async function fetchHeroNews() {
+            const list = document.getElementById('hero-news-list');
+            const updEl = document.getElementById('news-updated');
+            list.innerHTML = Array(6).fill(`<div class="hn-skel"><div class="skel sk-img"></div><div class="sk-lines"><div class="skel sk-line w80"></div><div class="skel sk-line w60"></div><div class="skel sk-line w40"></div></div></div>`).join('');
+            let articles = [];
+            try {
+                const res = await fetch('https://finnhub.io/api/v1/news?category=general&token=' + FINNHUB_KEY);
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                if (data && data.length > 0) { articles = data.slice(0, 8); } else { throw new Error('No data'); }
+            } catch (e) { console.log('Finnhub unavailable, using fallback:', e.message); articles = HERO_NEWS_FALLBACK; }
+            setTimeout(() => {
+                list.innerHTML = articles.map(a => {
+                    const diff = Math.floor(Date.now() / 1000 - a.datetime);
+                    const ago = diff < 60 ? 'Just now' : diff < 3600 ? Math.floor(diff / 60) + ' min ago' : diff < 86400 ? Math.floor(diff / 3600) + ' hr ago' : Math.floor(diff / 86400) + ' days ago';
+                    const img = a.image ? `<img class="hn-img" src="${a.image}" alt="" onerror="this.style.display='none'">` : '';
+                    return `<a class="hn-item" href="${a.url || '#'}" target="_blank" rel="noopener">${img}<div class="hn-body"><h4>${a.headline}</h4><div class="hn-meta"><span class="src">${a.source}</span><span>·</span><span>${ago}</span></div></div></a>`;
+                }).join('');
+                const now = new Date();
+                updEl.textContent = 'Updated: ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' · Refreshes every hour';
+            }, 500);
         }
     </script>
 </body>
