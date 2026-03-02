@@ -3051,20 +3051,7 @@
                         g.fn
                     }
 
-                    </div></div></div> <ul class="guru-list" >$ {
-                        g.h.map(h=> `< li class="guru-li" ><span class="h-tk" >$ {
-                                h.t
-                            }
-
-                            </span><span class="h-pct" >$ {
-                                h.p
-                            }
-
-                            </span><span class="h-ch ${h.ty}" >$ {
-                                h.c
-                            }
-
-                            </span></li > `).join('')
+                    </div></div></div> <ul class="guru-list" >${g.h.map(h => `<li class="guru-li"><span class="h-tk">${h.t}</span><span class="h-pct">${h.p}</span><span class="h-ch ${h.ty}">${h.c}</span></li>`).join('')
                     }
 
                     </ul> <div class="guru-ft" ><span>Updated: $ {
@@ -3249,13 +3236,8 @@
                                 n.sent==='pos' ? '🟢 Positive' : n.sent==='neg' ? '🔴 Negative' : '🟡 Neutral'
                             }
 
-                            </span> <div class="ntags" >$ {
-                                n.tags.map(t=> `< span class="ntag" > $ {
-                        t
-                    }
-
-                                    </span > `).join('')
-                            }
+                            </span> <div class="ntags" >${n.tags.map(t => `<span class="ntag">${t}</span>`).join('')
+                        }
 
                             </div> </div> <div style="margin-top:.5rem" > <a href="${url}" target="_blank" rel="noopener noreferrer" style="font-size:.67rem;font-weight:700;color:var(--cyan);text-decoration:none;display:inline-flex;align-items:center;gap:.25rem;opacity:.8;transition:opacity .15s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'" >อ่านต่อที่ $ {
                                 n.src

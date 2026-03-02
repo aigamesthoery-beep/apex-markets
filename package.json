@@ -1,0 +1,17 @@
+{
+    "name": "apex-markets",
+    "version": "1.0.0",
+    "description": "APEX Markets — Real-time Stock Market Dashboard",
+    "scripts": {
+        "start": "npx -y serve . -p 3000",
+        "dev": "npx -y live-server --port=3000 --open=dashboard.html"
+    },
+    "keywords": [
+        "stocks",
+        "SET",
+        "NYSE",
+        "NASDAQ",
+        "dashboard"
+    ],
+    "license": "MIT"
+}
