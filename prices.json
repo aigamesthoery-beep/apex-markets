@@ -1,0 +1,357 @@
+{
+  "updated": "2026-03-08T10:46:56.519087+07:00",
+  "ok": 34,
+  "total": 34,
+  "TH": {
+    "indices": {
+      "^SET.BK": {
+        "price": 1410.37,
+        "change": -6.92,
+        "pct": -0.4883,
+        "rsi": 46.9,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "^SET50.BK": {
+        "price": 937.7,
+        "change": -5.9,
+        "pct": -0.6253,
+        "rsi": 50.0,
+        "rsiLabel": "Loading…",
+        "macd": "Loading…",
+        "trend": "Loading…",
+        "signal": "—"
+      },
+      "^MAI.BK": {
+        "price": 218.11,
+        "change": 1.99,
+        "pct": 0.9208,
+        "rsi": 50.0,
+        "rsiLabel": "Loading…",
+        "macd": "Loading…",
+        "trend": "Loading…",
+        "signal": "—"
+      },
+      "^SET100.BK": {
+        "price": 2003.47,
+        "change": -11.81,
+        "pct": -0.586,
+        "rsi": 50.0,
+        "rsiLabel": "Loading…",
+        "macd": "Loading…",
+        "trend": "Loading…",
+        "signal": "—"
+      }
+    },
+    "stocks": {
+      "PTT.BK": {
+        "price": 34.0,
+        "change": 0.0,
+        "pct": 0.0,
+        "rsi": 47.0,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "AOT.BK": {
+        "price": 50.5,
+        "change": -0.5,
+        "pct": -0.9804,
+        "rsi": 30.6,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "ADVANC.BK": {
+        "price": 361.0,
+        "change": 1.0,
+        "pct": 0.2778,
+        "rsi": 48.4,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "KBANK.BK": {
+        "price": 188.0,
+        "change": -2.0,
+        "pct": -1.0526,
+        "rsi": 40.5,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "SCB.BK": {
+        "price": 144.0,
+        "change": -1.0,
+        "pct": -0.6897,
+        "rsi": 56.8,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "CPALL.BK": {
+        "price": 48.5,
+        "change": -0.5,
+        "pct": -1.0204,
+        "rsi": 48.0,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "GULF.BK": {
+        "price": 56.0,
+        "change": -0.5,
+        "pct": -0.885,
+        "rsi": 49.5,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "BDMS.BK": {
+        "price": 19.2,
+        "change": -0.2,
+        "pct": -1.0309,
+        "rsi": 30.2,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "TRUE.BK": {
+        "price": 13.2,
+        "change": -0.4,
+        "pct": -2.9412,
+        "rsi": 47.5,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "BANPU.BK": {
+        "price": 6.0,
+        "change": -0.2,
+        "pct": -3.2258,
+        "rsi": 55.8,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "SCC.BK": {
+        "price": 186.0,
+        "change": -1.5,
+        "pct": -0.8,
+        "rsi": 19.3,
+        "rsiLabel": "Oversold",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "MINT.BK": {
+        "price": 21.4,
+        "change": -0.3,
+        "pct": -1.3825,
+        "rsi": 20.4,
+        "rsiLabel": "Oversold",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      }
+    }
+  },
+  "US": {
+    "indices": {
+      "^GSPC": {
+        "price": 6740.02,
+        "change": -90.69,
+        "pct": -1.3277,
+        "rsi": 42.1,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "^IXIC": {
+        "price": 22387.68,
+        "change": -361.31,
+        "pct": -1.5882,
+        "rsi": 47.1,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish Crossover",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "^DJI": {
+        "price": 47501.55,
+        "change": -453.19,
+        "pct": -0.945,
+        "rsi": 28.5,
+        "rsiLabel": "Oversold",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "^RUT": {
+        "price": 2525.3,
+        "change": -60.27,
+        "pct": -2.3311,
+        "rsi": 33.7,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      }
+    },
+    "stocks": {
+      "NVDA": {
+        "price": 177.82,
+        "change": -5.52,
+        "pct": -3.0108,
+        "rsi": 44.8,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "AAPL": {
+        "price": 257.46,
+        "change": -2.83,
+        "pct": -1.0873,
+        "rsi": 51.9,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "TSLA": {
+        "price": 396.73,
+        "change": -8.82,
+        "pct": -2.1748,
+        "rsi": 38.1,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "AMZN": {
+        "price": 213.21,
+        "change": -5.73,
+        "pct": -2.6172,
+        "rsi": 66.3,
+        "rsiLabel": "Neutral",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "MSFT": {
+        "price": 408.96,
+        "change": -1.72,
+        "pct": -0.4188,
+        "rsi": 56.4,
+        "rsiLabel": "Neutral",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "BUY"
+      },
+      "META": {
+        "price": 644.86,
+        "change": -15.71,
+        "pct": -2.3782,
+        "rsi": 52.4,
+        "rsiLabel": "Neutral",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "BUY"
+      },
+      "GOOGL": {
+        "price": 298.52,
+        "change": -2.36,
+        "pct": -0.7844,
+        "rsi": 42.3,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "AMD": {
+        "price": 192.43,
+        "change": -7.02,
+        "pct": -3.5197,
+        "rsi": 40.5,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "NFLX": {
+        "price": 99.02,
+        "change": -0.15,
+        "pct": -0.1513,
+        "rsi": 87.3,
+        "rsiLabel": "Overbought",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "SELL"
+      },
+      "PLTR": {
+        "price": 157.16,
+        "change": 4.49,
+        "pct": 2.941,
+        "rsi": 81.7,
+        "rsiLabel": "Overbought",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "SELL"
+      },
+      "BRK-B": {
+        "price": 498.98,
+        "change": -1.42,
+        "pct": -0.2838,
+        "rsi": 50.9,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "JNJ": {
+        "price": 240.4,
+        "change": 0.77,
+        "pct": 0.3213,
+        "rsi": 47.1,
+        "rsiLabel": "Neutral",
+        "macd": "Bearish",
+        "trend": "Neutral",
+        "signal": "HOLD"
+      },
+      "V": {
+        "price": 317.36,
+        "change": -2.44,
+        "pct": -0.763,
+        "rsi": 53.9,
+        "rsiLabel": "Neutral",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "BUY"
+      },
+      "UNH": {
+        "price": 286.48,
+        "change": -2.29,
+        "pct": -0.793,
+        "rsi": 44.2,
+        "rsiLabel": "Neutral",
+        "macd": "Bullish",
+        "trend": "Neutral",
+        "signal": "BUY"
+      }
+    }
+  }
+}

@@ -3,8 +3,8 @@
     "version": "1.0.0",
     "description": "APEX Markets — Real-time Stock Market Dashboard",
     "scripts": {
-        "start": "npx -y serve . -p 3000",
-        "dev": "npx -y live-server --port=3000 --open=dashboard.html"
+        "start": "node server.js",
+        "dev": "node server.js"
     },
     "keywords": [
         "stocks",
@@ -13,5 +13,8 @@
         "NASDAQ",
         "dashboard"
     ],
-    "license": "MIT"
+    "license": "MIT",
+    "dependencies": {
+        "yahoo-finance2": "^3.13.2"
+    }
 }
