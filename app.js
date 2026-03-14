@@ -230,8 +230,7 @@ async function loadFromYahoo() {
     applyPricesJSON(pricesJson);
     console.log(`✅ Yahoo Finance (proxy): ${quotes.length}/${YF_ALL.length} loaded`);
 
-    // Refresh ทุก 60 วินาที
-    setTimeout(loadFromYahoo, 60000);
+    // ❌ Removed: setTimeout(loadFromYahoo, 60000); (Now relies on scheduled hourly updates)
   } catch (e) {
     // Proxy ล้มเหลว (ไม่มี Node server?) → ใช้ prices.json แทน
     console.warn('Quote proxy failed:', e.message, '→ falling back to prices.json');
@@ -305,7 +304,7 @@ async function loadPricesJSON() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     applyPricesJSON(json);
-    setTimeout(loadPricesJSON, 60000);
+    // ❌ Removed: setTimeout(loadPricesJSON, 60000);
   } catch (e) {
     console.warn('prices.json not available — using static data.', e.message);
     setTimeout(loadPricesJSON, 10000);
@@ -531,6 +530,23 @@ function initDynamicJitter() {
 }
 
 // ── SCHEDULED UPDATES ─────────────────────────────────────────────────────────
+function isMarketOpen(mkt) {
+  const now = new Date();
+  const utcH = now.getUTCHours();
+  const utcM = now.getUTCMinutes();
+  const day = now.getUTCDay();
+  // ข้าม เสาร์-อาทิตย์ (UTC)
+  if (day === 0 || day === 6) return false;
+  
+  const inMins = utcH * 60 + utcM;
+  if (mkt === 'TH') {
+    return inMins >= 180 && inMins <= 570; // 03:00 - 09:30 UTC (10:00-16:30 ICT)
+  } else if (mkt === 'US') {
+    return inMins >= 870 && inMins <= 1260; // 14:30 - 21:00 UTC (09:30-16:00 ET)
+  }
+  return false;
+}
+
 function initScheduledUpdates() {
   setInterval(() => {
     const now = new Date();
@@ -539,9 +555,17 @@ function initScheduledUpdates() {
     // ตรวจสอบว่าเป็นเวลาที่ตรงกับตาราง (ระดับนาที)
     // ใช้วินาทีแบบ 0 เพื่อดึงแค่ครั้งเดียวต่อนาที
     if (CONFIG.updateSchedule.includes(timeStr) && now.getSeconds() === 0) {
-      console.log(`⏰ Scheduled Update trigger at ${timeStr}`);
-      initDataLoad();
-      loadFromYahoo();
+      const thOpen = isMarketOpen('TH');
+      const usOpen = isMarketOpen('US');
+      
+      console.log(`⏰ Scheduled Update trigger at ${timeStr}. TH Open: ${thOpen}, US Open: ${usOpen}`);
+      
+      if (thOpen || usOpen) {
+        initDataLoad();
+        loadFromYahoo();
+      } else {
+        console.log('💤 Markets are closed. Skipping fetch.');
+      }
     }
   }, 1000); // check every second
 }

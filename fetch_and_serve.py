@@ -28,10 +28,29 @@ except ImportError:
 try:
     import yfinance as yf
     import pandas as pd
+    import pytz
 except ImportError:
-    pip_install("yfinance pandas")
+    pip_install("yfinance pandas pytz")
     import yfinance as yf
     import pandas as pd
+    import pytz
+
+# ── Market Hours ──────────────────────────────────────────────────────────────
+def is_th_market_open(now_utc):
+    th_tz = pytz.timezone('Asia/Bangkok')
+    th_time = now_utc.astimezone(th_tz)
+    if th_time.weekday() > 4: # Sat, Sun
+        return False
+    time_float = th_time.hour + th_time.minute / 60.0
+    return 9.5 <= time_float <= 17.0
+
+def is_us_market_open(now_utc):
+    us_tz = pytz.timezone('US/Eastern')
+    us_time = now_utc.astimezone(us_tz)
+    if us_time.weekday() > 4: # Sat, Sun
+        return False
+    time_float = us_time.hour + us_time.minute / 60.0
+    return 9.0 <= time_float <= 16.5
 
 # ── Symbol lists ──────────────────────────────────────────────────────────────
 TH_INDEX_SYMS = ["^SET.BK", "^SET50.BK", "^MAI.BK", "^SET100.BK"]
@@ -198,27 +217,29 @@ def build_payload(raw, updated=None):
     }
 
 
-def background_fetch():
+def background_fetch(force=False):
     """ทำงานในพื้นหลัง — ไม่บล็อก server หรือ browser"""
-    # ── Phase 1: ราคาปัจจุบัน ────────────────────────────────────────────────
-    print(f"[{datetime.now():%H:%M:%S}] ⚡ Phase 1: fetching live quotes…", flush=True)
-    t0  = time.time()
-    raw = fetch_quotes(ALL_SYMS)
+    now_utc = datetime.now(timezone.utc)
+    th_open = is_th_market_open(now_utc)
+    us_open = is_us_market_open(now_utc)
+    
+    if not force and not th_open and not us_open:
+        print(f"[{datetime.now():%H:%M:%S}] 💤 Both TH and US markets are closed. Skipping update.", flush=True)
+        return
 
-    if raw:
-        payload = build_payload(raw)
-        write_json(payload)
-        elapsed = time.time() - t0
-        th = payload["TH"]["indices"].get("^SET.BK")
-        sp = payload["US"]["stocks"].get("AAPL")
-        print(f"[{datetime.now():%H:%M:%S}] ✅ Phase 1 done — "
-              f"{len(raw)}/{len(ALL_SYMS)} quotes in {elapsed:.1f}s", flush=True)
-        if th: print(f"       SET  = {th['price']:,.2f}  ({th['pct']:+.2f}%)", flush=True)
-        if sp: print(f"       AAPL = {sp['price']:,.2f}  ({sp['pct']:+.2f}%)", flush=True)
-    else:
-        print("  ⚠️  Quote API failed — using existing prices.json", flush=True)
-        # โหลด raw จาก prices.json ที่มีอยู่
-        try:
+    syms_to_fetch = []
+    if force or th_open:
+        syms_to_fetch.extend(TH_INDEX_SYMS + TH_STOCK_SYMS)
+    if force or us_open:
+        syms_to_fetch.extend(US_INDEX_SYMS + US_STOCK_SYMS)
+
+    if not syms_to_fetch:
+        return
+
+    # โหลด raw จาก prices.json ที่มีอยู่ เพื่อกันข้อมูลตลาดที่ปิดหายไป
+    raw = {}
+    try:
+        if os.path.exists(PRICES_FILE):
             with open(PRICES_FILE, encoding="utf-8") as f:
                 existing = json.load(f)
             for cat in ("indices","stocks"):
@@ -226,16 +247,45 @@ def background_fetch():
                     raw[sym] = d
                 for sym, d in existing.get("US",{}).get(cat,{}).items():
                     raw[sym] = d
-        except Exception:
-            pass
+    except Exception:
+        pass
+
+    # ── Phase 1: ราคาปัจจุบัน ────────────────────────────────────────────────
+    print(f"[{datetime.now():%H:%M:%S}] ⚡ Phase 1: fetching live quotes (TH open: {th_open}, US open: {us_open})...", flush=True)
+    t0  = time.time()
+    fresh_raw = fetch_quotes(syms_to_fetch)
+
+    if fresh_raw:
+        # Merge fresh data into raw (รักษาค่า indicators เดิมไว้ก่อนชั่วคราว)
+        for sym, data in fresh_raw.items():
+            if sym in raw:
+                data["rsi"] = raw[sym].get("rsi", 50.0)
+                data["rsiLabel"] = raw[sym].get("rsiLabel", "Loading…")
+                data["macd"] = raw[sym].get("macd", "Loading…")
+                data["trend"] = raw[sym].get("trend", "Loading…")
+                data["signal"] = raw[sym].get("signal", "—")
+            raw[sym] = data
+            
+        payload = build_payload(raw)
+        write_json(payload)
+        elapsed = time.time() - t0
+        th = payload["TH"]["indices"].get("^SET.BK")
+        sp = payload["US"]["stocks"].get("AAPL")
+        print(f"[{datetime.now():%H:%M:%S}] ✅ Phase 1 done — "
+              f"{len(fresh_raw)} quotes updated in {elapsed:.1f}s", flush=True)
+        if th: print(f"       SET  = {th['price']:,.2f}  ({th['pct']:+.2f}%)", flush=True)
+        if sp: print(f"       AAPL = {sp['price']:,.2f}  ({sp['pct']:+.2f}%)", flush=True)
+    else:
+        print("  ⚠️  Quote API failed — using existing prices", flush=True)
 
     print("", flush=True)
 
-    # ── Phase 2: technical indicators (parallel groups) ───────────────────────
-    print(f"[{datetime.now():%H:%M:%S}] 📊 Phase 2: computing indicators (background)…", flush=True)
-    n = len(ALL_SYMS)
+    # ── Phase 2: technical indicators (parallel groups) สำหรับหุ้นที่ดึงครั้งนี้เท่านั้น ────
+    print(f"[{datetime.now():%H:%M:%S}] 📊 Phase 2: computing indicators (background)....", flush=True)
+    n = len(syms_to_fetch)
     chunk = (n + 3) // 4
-    groups = [ALL_SYMS[i:i+chunk] for i in range(0, n, chunk)]
+    if chunk == 0: chunk = 1
+    groups = [syms_to_fetch[i:i+chunk] for i in range(0, n, chunk)]
 
     with ThreadPoolExecutor(max_workers=4) as ex:
         futures = [(i, ex.submit(fetch_indicators_group, g)) for i, g in enumerate(groups)]
@@ -247,7 +297,7 @@ def background_fetch():
             except Exception as e:
                 print(f"  ✗ Group {i+1}: {e}", flush=True)
 
-    # เขียน prices.json อีกครั้งพร้อม indicators ครบ
+    # เขียน prices.json อีกครั้งหลังอัปเดต indicators ให้ตลาดที่เปิด
     payload = build_payload(raw)
     write_json(payload)
     print(f"[{datetime.now():%H:%M:%S}] ✅ Phase 2 done — indicators updated\n", flush=True)
@@ -255,9 +305,9 @@ def background_fetch():
 
 def refresh_loop():
     while True:
-        time.sleep(300)   # refresh ทุก 5 นาที
+        time.sleep(3600)   # refresh ทุก 1 ชั่วโมง
         try:
-            background_fetch()
+            background_fetch(force=False)
         except Exception as e:
             print(f"Refresh error: {e}", flush=True)
 
@@ -286,8 +336,8 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    # 3️⃣  ดาวน์โหลดข้อมูลใหม่ใน background thread
-    threading.Thread(target=background_fetch, daemon=True).start()
+    # 3️⃣  ดาวน์โหลดข้อมูลใหม่ใน background thread (Force ครั้งแรกเพื่อให้มีข้อมูลครบ)
+    threading.Thread(target=background_fetch, args=(True,), daemon=True).start()
 
     # 4️⃣  วน refresh ทุก 5 นาที
     threading.Thread(target=refresh_loop, daemon=True).start()
