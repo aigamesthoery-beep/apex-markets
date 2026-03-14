@@ -251,18 +251,15 @@ function buildFromYahooQuotes(qmap) {
         if (!found) found = MARKET_DATA.US?.indices?.find(s => s.name === nname);
     }
 
-    return found ? {
-      price: found.price !== '—' ? parseFloat(String(found.price).replace(/,/g, '')) : null,
-      change: found.change !== '—' ? parseFloat(String(found.change).replace(/[+,]/g, '')) : null,
-      pct: found.pct !== '—' ? parseFloat(String(found.pct).replace(/[+,%]/g, '')) : null,
-      rsi: found.rsi,
-      rsiLabel: found.rsiLabel,
-      macd: found.macd,
-      trend: found.trend,
-      signal: found.signal
-    } : {
+    return found ? Object.assign({}, found, {
+      price: found.price !== '—' && found.price !== undefined ? parseFloat(String(found.price).replace(/,/g, '')) : null,
+      change: found.change !== '—' && found.change !== undefined ? parseFloat(String(found.change).replace(/[+,]/g, '')) : null,
+      pct: found.pct !== '—' && found.pct !== undefined ? parseFloat(String(found.pct).replace(/[+,%]/g, '')) : null
+    }) : {
       price: null, change: null, pct: null,
-      rsi: 50, rsiLabel: 'N/A', macd: 'N/A', trend: 'N/A', signal: 'HOLD'
+      rsi: 50, rsiLabel: 'N/A', macd: 'N/A', trend: 'N/A', signal: 'HOLD',
+      name: TH_STOCK_NAMES[sym] || US_STOCK_NAMES[sym] || TH_INDEX_NAMES[sym] || US_INDEX_NAMES[sym] || sym,
+      symbol: displaySym
     };
   };
 
@@ -282,7 +279,14 @@ function buildFromYahooQuotes(qmap) {
       price: (p !== undefined && p !== null && p !== 0) ? p : existing.price || 0,
       change: (c !== undefined && c !== null) ? c : existing.change || 0,
       pct: (pct !== undefined && pct !== null) ? pct : existing.pct || 0,
-      ...existing
+      rsi: existing.rsi,
+      rsiLabel: existing.rsiLabel,
+      macd: existing.macd,
+      trend: existing.trend,
+      signal: existing.signal,
+      name: existing.name,
+      symbol: existing.symbol,
+      up: (c !== undefined && c !== null) ? c >= 0 : existing.up
     };
   };
   const toDict = (syms) => Object.fromEntries(
