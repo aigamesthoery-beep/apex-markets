@@ -15,7 +15,7 @@ const PORT = 3000;
 
 // ── Yahoo Finance Proxy (60-second cache) ─────────────────────────────────────
 let _cache = { data: null, ts: 0 };
-const CACHE_TTL = 60_000; // ms
+const CACHE_TTL = 5_000; // ms (ลด cache เหลือ 5 วิ เพื่อความสดใหม่)
 
 const yahooFinance = require('yahoo-finance2').default;
 

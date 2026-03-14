@@ -1,40 +1,25 @@
 @echo off
+title Apex Markets Live Dashboard
+echo.
 echo ============================================
-echo   APEX Markets Dashboard - Local Server
+echo   APEX Markets Dashboard - Live Server
 echo ============================================
 echo.
-echo Starting local server on http://localhost:8080
+echo Starting Node.js server (Live Yahoo Proxy) on port 3000...
 echo The dashboard will open automatically...
 echo Press Ctrl+C to stop the server.
 echo.
 
-REM Try Python 3 first
-python --version >nul 2>&1
+node --version >nul 2>&1
 if %errorlevel% == 0 (
-    start "" http://localhost:8080/dashboard.html
-    python -m http.server 8080
+    start "" http://localhost:3000/dashboard.html
+    node server.js
     goto :end
 )
 
-REM Try Python launcher
-py --version >nul 2>&1
-if %errorlevel% == 0 (
-    start "" http://localhost:8080/dashboard.html
-    py -m http.server 8080
-    goto :end
-)
-
-REM Try Node.js http-server
-npx --version >nul 2>&1
-if %errorlevel% == 0 (
-    start "" http://localhost:8080/dashboard.html
-    npx http-server . -p 8080 --cors
-    goto :end
-)
-
-echo ERROR: Python or Node.js not found.
-echo Please install Python from https://python.org
-echo Or run manually: python -m http.server 8080
+echo ERROR: Node.js is not installed or not found in PATH!
+echo You MUST install Node.js from https://nodejs.org to get live prices.
+echo The old python fallback has been disabled because it cannot fetch live Yahoo data.
 pause
 
 :end

@@ -231,6 +231,8 @@ async function loadFromYahoo() {
     console.log(`✅ Yahoo Finance (proxy): ${quotes.length}/${YF_ALL.length} loaded`);
 
     // ❌ Removed: setTimeout(loadFromYahoo, 60000); (Now relies on scheduled hourly updates)
+    // ✅ Re-added for LIVE fetching: ดึงข้อมูลสดจาก Yahoo ทุก 10 วินาที
+    setTimeout(loadFromYahoo, 10000);
   } catch (e) {
     // Proxy ล้มเหลว (ไม่มี Node server?) → ใช้ prices.json แทน
     console.warn('Quote proxy failed:', e.message, '→ falling back to prices.json');
