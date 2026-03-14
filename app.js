@@ -473,8 +473,10 @@ function initDynamicJitter() {
   setInterval(() => {
     if (!dataLoaded) return;
     
-    // Check if market is open (optional, but let's jitter always to look dynamic)
     ['TH', 'US'].forEach(mkt => {
+      // ยกเลิกการสุ่มตัวเลขเปลี่ยนแปลง (Jitter) หากตลาดของประเทศนั้นปิดลงแล้ว
+      if (!isMarketOpen(mkt)) return;
+
       // Update Stocks
       (MARKET_DATA[mkt]?.technicalPicks || []).forEach(s => {
         if (s.price === '—' || s.change === '—') return;
