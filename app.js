@@ -531,20 +531,32 @@ function initDynamicJitter() {
   }, CONFIG.jitterIntervalMs);
 }
 
-// ── SCHEDULED UPDATES ─────────────────────────────────────────────────────────
 function isMarketOpen(mkt) {
   const now = new Date();
-  const utcH = now.getUTCHours();
-  const utcM = now.getUTCMinutes();
-  const day = now.getUTCDay();
-  // ข้าม เสาร์-อาทิตย์ (UTC)
-  if (day === 0 || day === 6) return false;
   
-  const inMins = utcH * 60 + utcM;
   if (mkt === 'TH') {
-    return inMins >= 180 && inMins <= 570; // 03:00 - 09:30 UTC (10:00-16:30 ICT)
+    // ใช้เวลาท้องถิ่นของไทย (Asia/Bangkok)
+    const thDateStr = now.toLocaleString("en-US", {timeZone: "Asia/Bangkok"});
+    const thDate = new Date(thDateStr);
+    const day = thDate.getDay(); // 0 = Sun, 6 = Sat
+    if (day === 0 || day === 6) return false;
+    
+    const h = thDate.getHours();
+    const m = thDate.getMinutes();
+    const timeFloat = h + (m / 60.0);
+    return timeFloat >= 9.5 && timeFloat <= 16.5; // 09:30 - 16:30 ICT
+    
   } else if (mkt === 'US') {
-    return inMins >= 870 && inMins <= 1260; // 14:30 - 21:00 UTC (09:30-16:00 ET)
+    // ใช้เวลาท้องถิ่นอเมริกาตะวันออก (America/New_York) จะปรับ DST ให้อัตโนมัติ
+    const usDateStr = now.toLocaleString("en-US", {timeZone: "America/New_York"});
+    const usDate = new Date(usDateStr);
+    const day = usDate.getDay(); // 0 = Sun, 6 = Sat
+    if (day === 0 || day === 6) return false;
+    
+    const h = usDate.getHours();
+    const m = usDate.getMinutes();
+    const timeFloat = h + (m / 60.0);
+    return timeFloat >= 9.5 && timeFloat <= 16.0; // 09:30 - 16:00 ET
   }
   return false;
 }
@@ -607,13 +619,8 @@ function updateMarketStatus() {
   const d = currentMarket === 'TH'
     ? { flag: '🇹🇭', exchange: 'SET / mai', hours: '10:00–16:30 ICT' }
     : { flag: '🇺🇸', exchange: 'NYSE / NASDAQ', hours: '09:30–16:00 ET' };
-  const now = new Date();
-  const utcH = now.getUTCHours();
-  const utcM = now.getUTCMinutes();
-  const inMins = utcH * 60 + utcM;
-  const isOpen = currentMarket === 'TH'
-    ? inMins >= 180 && inMins < 570      // 03:00–09:30 UTC = SET open
-    : inMins >= 870 && inMins < 1260;   // 14:30–21:00 UTC = NYSE open
+    
+  const isOpen = isMarketOpen(currentMarket);
   txt.textContent = `${d.flag} ${d.exchange} — ${isOpen ? 'Open' : 'Closed'} · ${d.hours}`;
   dot.className = 'dot ' + (isOpen ? 'on' : 'off');
 }
