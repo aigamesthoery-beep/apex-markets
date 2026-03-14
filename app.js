@@ -2,6 +2,15 @@
 // PRIMARY:  ดึงข้อมูลตรงจาก Yahoo Finance Quote API (ข้อมูลตรงกับ Yahoo 100%)
 // FALLBACK: prices.json (จาก fetch_and_serve.py) → static data
 
+// ── CONFIGURATION VARIABLES ───────────────────────────────────────────────
+const CONFIG = {
+  // กำหนดเวลาดึงข้อมูลทุกต้นชั่วโมง (00:00 - 23:00)
+  updateSchedule: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`),
+  // ให้ตัวเลขมีการเปลี่ยนแปลงแบบ dynamic (จำลองราคา realtime)
+  enableDynamicJitter: true,
+  jitterIntervalMs: 3000
+};
+
 // ── STATIC FALLBACK DATA ──────────────────────────────────────────────────────
 const STATIC = {
   TH: {
@@ -167,8 +176,26 @@ document.addEventListener('DOMContentLoaded', () => {
   initClock();
   renderNewsTicker(TICKER_FALLBACK);
   renderAll();           // show skeleton / fallback first
-  loadFromYahoo();       // ดึงข้อมูลตรงจาก Yahoo Finance API
+  initDataLoad();        // ดึง technical indicators จาก prices.json ก่อน 
+  loadFromYahoo();       // ดึงข้อมูล live prices ตรงจาก Yahoo Finance API
+  
+  initDynamicJitter();   // สร้างการเปลี่ยนแปลงตัวเลขแบบ dynamic
+  initScheduledUpdates(); // ตั้งค่าดึงข้อมูลตามเวลา เช้า, เที่ยง, เย็น, ค่ำ
 });
+
+async function initDataLoad() {
+  try {
+    const res = await fetch('prices.json?t=' + Date.now());
+    if (res.ok) {
+      const json = await res.json();
+      applyPricesJSON(json);
+      console.log('✅ Loaded technical indicators from prices.json');
+    }
+  } catch (e) {
+    console.warn('prices.json not available at init:', e.message);
+  }
+  setTimeout(initDataLoad, 300000); // refresh indicators every 5 mins
+}
 
 // ── YAHOO FINANCE DIRECT FETCH (PRIMARY) ──────────────────────────────────────
 // Symbol arrays สำหรับ Yahoo Finance API (ตรงกับ yfinance)
@@ -213,15 +240,50 @@ async function loadFromYahoo() {
 }
 
 function buildFromYahooQuotes(qmap) {
+  const getExistingInd = (sym) => {
+    const displaySym = sym.replace(/\.BK$/, '');
+    let found = MARKET_DATA.TH?.technicalPicks?.find(s => s.symbol === displaySym);
+    if (!found) found = MARKET_DATA.US?.technicalPicks?.find(s => s.symbol === displaySym);
+
+    // Fallback to indices if not found in stocks
+    if (!found) {
+        let nname = TH_INDEX_NAMES[sym] || US_INDEX_NAMES[sym] || sym;
+        found = MARKET_DATA.TH?.indices?.find(s => s.name === nname);
+        if (!found) found = MARKET_DATA.US?.indices?.find(s => s.name === nname);
+    }
+
+    return found ? {
+      price: found.price !== '—' ? parseFloat(String(found.price).replace(/,/g, '')) : null,
+      change: found.change !== '—' ? parseFloat(String(found.change).replace(/[+,]/g, '')) : null,
+      pct: found.pct !== '—' ? parseFloat(String(found.pct).replace(/[+,%]/g, '')) : null,
+      rsi: found.rsi,
+      rsiLabel: found.rsiLabel,
+      macd: found.macd,
+      trend: found.trend,
+      signal: found.signal
+    } : {
+      price: null, change: null, pct: null,
+      rsi: 50, rsiLabel: 'N/A', macd: 'N/A', trend: 'N/A', signal: 'HOLD'
+    };
+  };
+
   const toEntry = sym => {
     const q = qmap[sym];
-    if (!q) return null;
+    const existing = getExistingInd(sym);
+    
+    // ถ้าไม่มีข้อมูลใน Yahoo Proxy, ให้ดึงจาก fallback prices.json
+    if (!q) return existing; 
+
+    const p = q.regularMarketPrice;
+    const c = q.regularMarketChange;
+    const pct = q.regularMarketChangePercent;
+
+    // Use Yahoo value if valid, else fallback to existing
     return {
-      price: q.regularMarketPrice ?? 0,
-      change: q.regularMarketChange ?? 0,
-      pct: q.regularMarketChangePercent ?? 0,
-      // Technical indicators ยังไม่มีจาก Quote API → ใช้ค่า defaults
-      rsi: 50, rsiLabel: 'N/A', macd: 'N/A', trend: 'N/A', signal: 'HOLD',
+      price: (p !== undefined && p !== null && p !== 0) ? p : existing.price || 0,
+      change: (c !== undefined && c !== null) ? c : existing.change || 0,
+      pct: (pct !== undefined && pct !== null) ? pct : existing.pct || 0,
+      ...existing
     };
   };
   const toDict = (syms) => Object.fromEntries(
@@ -403,6 +465,85 @@ function initClock() {
   };
   tick();
   setInterval(tick, 1000);
+}
+
+// ── DYNAMIC NUMBER SIMULATOR (JITTER) ─────────────────────────────────────────
+function initDynamicJitter() {
+  if (!CONFIG.enableDynamicJitter) return;
+  
+  setInterval(() => {
+    if (!dataLoaded) return;
+    
+    // Check if market is open (optional, but let's jitter always to look dynamic)
+    ['TH', 'US'].forEach(mkt => {
+      // Update Stocks
+      (MARKET_DATA[mkt]?.technicalPicks || []).forEach(s => {
+        if (s.price === '—' || s.change === '—') return;
+        
+        let oldP = parseFloat(s.price.replace(/,/g, ''));
+        let oldChg = parseFloat(s.change.replace(/[+,]/g, ''));
+        if (isNaN(oldP) || isNaN(oldChg) || oldP <= 0) return;
+        
+        let baseClose = oldP - oldChg;
+        // Jitter by -0.1% to +0.1%
+        let jitter = oldP * ((Math.random() * 0.002) - 0.001); 
+        let newP = oldP + jitter;
+        
+        // Prevent price dropping below 0
+        if (newP <= 0) newP = oldP;
+
+        let newChg = newP - baseClose;
+        let newPct = baseClose > 0 ? (newChg / baseClose) * 100 : 0;
+
+        s.price = newP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        s.change = (newChg >= 0 ? '+' : '') + Math.abs(newChg).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        s.pct = (newPct >= 0 ? '+' : '') + Math.abs(newPct).toFixed(2) + '%';
+        s.up = newChg >= 0;
+      });
+
+      // Update Indices
+      (MARKET_DATA[mkt]?.indices || []).forEach(idx => {
+        if (idx.value === '—' || idx.change === '—') return;
+        
+        let oldP = parseFloat(idx.value.replace(/,/g, ''));
+        let oldChg = parseFloat(idx.change.replace(/[+,]/g, ''));
+        if (isNaN(oldP) || isNaN(oldChg) || oldP <= 0) return;
+        
+        let baseClose = oldP - oldChg;
+        let jitter = oldP * ((Math.random() * 0.001) - 0.0005);
+        let newP = oldP + jitter;
+        if (newP <= 0) newP = oldP;
+
+        let newChg = newP - baseClose;
+        let newPct = baseClose > 0 ? (newChg / baseClose) * 100 : 0;
+
+        idx.value = newP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        idx.change = (newChg >= 0 ? '+' : '') + Math.abs(newChg).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        idx.pct = (newPct >= 0 ? '+' : '') + Math.abs(newPct).toFixed(2) + '%';
+        idx.up = newChg >= 0;
+      });
+    });
+
+    renderIndexCards();
+    renderTechnicalTab();
+    renderNewsTicker(buildLiveTicker());
+  }, CONFIG.jitterIntervalMs);
+}
+
+// ── SCHEDULED UPDATES ─────────────────────────────────────────────────────────
+function initScheduledUpdates() {
+  setInterval(() => {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    // ตรวจสอบว่าเป็นเวลาที่ตรงกับตาราง (ระดับนาที)
+    // ใช้วินาทีแบบ 0 เพื่อดึงแค่ครั้งเดียวต่อนาที
+    if (CONFIG.updateSchedule.includes(timeStr) && now.getSeconds() === 0) {
+      console.log(`⏰ Scheduled Update trigger at ${timeStr}`);
+      initDataLoad();
+      loadFromYahoo();
+    }
+  }, 1000); // check every second
 }
 
 // ── MARKET TOGGLE ─────────────────────────────────────────────────────────────
