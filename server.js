@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // ── Yahoo Finance Proxy (60-second cache) ─────────────────────────────────────
 let _cache = { data: null, ts: 0 };
@@ -122,5 +122,9 @@ server.listen(PORT, () => {
     console.log(`👉 http://localhost:${PORT}/dashboard.html`);
     console.log('📡 Yahoo Finance proxy: /api/quotes');
     console.log('========================================\n');
-    require('child_process').exec(`start http://localhost:${PORT}/dashboard.html`);
+    
+    // Only open browser if running locally (not on Render or Vercel)
+    if (!process.env.RENDER && !process.env.VERCEL && process.env.NODE_ENV !== 'production') {
+        try { require('child_process').exec(`start http://localhost:${PORT}/dashboard.html`); } catch(e) {}
+    }
 });
