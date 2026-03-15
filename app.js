@@ -7,7 +7,7 @@ const CONFIG = {
   // กำหนดเวลาดึงข้อมูลทุกต้นชั่วโมง (00:00 - 23:00)
   updateSchedule: Array.from({length: 24}, (_, i) => `${String(i).padStart(2, '0')}:00`),
   // ให้ตัวเลขมีการเปลี่ยนแปลงแบบ dynamic (จำลองราคา realtime)
-  enableDynamicJitter: true,
+  enableDynamicJitter: false,
   jitterIntervalMs: 3000
 };
 
@@ -230,8 +230,7 @@ async function loadFromYahoo() {
     applyPricesJSON(pricesJson);
     console.log(`✅ Yahoo Finance (proxy): ${quotes.length}/${YF_ALL.length} loaded`);
 
-    // ❌ Removed: setTimeout(loadFromYahoo, 60000); (Now relies on scheduled hourly updates)
-    // ✅ Re-added for LIVE fetching: ดึงข้อมูลสดจาก Yahoo ทุก 10 วินาที
+    // ✅ ดึงข้อมูลสดจาก Yahoo ทุก 10 วินาที
     setTimeout(loadFromYahoo, 10000);
   } catch (e) {
     // Proxy ล้มเหลว (ไม่มี Node server?) → ใช้ prices.json แทน
@@ -310,7 +309,6 @@ async function loadPricesJSON() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
     applyPricesJSON(json);
-    // ❌ Removed: setTimeout(loadPricesJSON, 60000);
   } catch (e) {
     console.warn('prices.json not available — using static data.', e.message);
     setTimeout(loadPricesJSON, 10000);
