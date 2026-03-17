@@ -305,7 +305,7 @@ def background_fetch(force=False):
 
 def refresh_loop():
     while True:
-        time.sleep(3600)   # refresh ทุก 1 ชั่วโมง
+        time.sleep(60)   # refresh ทุก 60 วินาที ตามที่ระบุใน comment ด้านบนสุด
         try:
             background_fetch(force=False)
         except Exception as e:

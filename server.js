@@ -31,11 +31,20 @@ function fetchYahooQuotes(symbols, cb) {
     yahooFinance.quote(symArray).then(results => {
         // yahoo-finance2 returns an array of quote objects, we need to map it back to { quoteResponse: { result: [...] } } format for app.js
         const qmap = results.map(q => {
-            // ดึงราคาล่าสุด (ถ้ามี post market ให้ใช้ post market, ถ้าไม่มีใช้ regular)
-            // สำหรับตลาดไทย (SET) มักจะไม่มี postMarket ให้ใช้ regularMarketPrice ทั่วไป
-            const price = q.postMarketPrice || q.regularMarketPrice;
-            const change = q.postMarketChange || q.regularMarketChange;
-            const pct = q.postMarketChangePercent || q.regularMarketChangePercent;
+            // ดึงราคาให้ตรงกับจังหวะตลาดเปิด-ปิด เพื่อไม่ให้ข้อมูลค้างอยู่ที่ราคา postMarket จากเมื่อวาน
+            let price = q.regularMarketPrice;
+            let change = q.regularMarketChange;
+            let pct = q.regularMarketChangePercent;
+
+            if (q.marketState === 'PRE' && q.preMarketPrice != null) {
+                price = q.preMarketPrice;
+                change = q.preMarketChange;
+                pct = q.preMarketChangePercent;
+            } else if ((q.marketState === 'POST' || q.marketState === 'CLOSED' || q.marketState === 'POSTPOST') && q.postMarketPrice != null) {
+                price = q.postMarketPrice;
+                change = q.postMarketChange;
+                pct = q.postMarketChangePercent;
+            }
 
             return {
                 symbol: q.symbol,
